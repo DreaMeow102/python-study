@@ -1,0 +1,36 @@
+# ================= Python =================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ================= 编译产物 / 可执行文件 =================
+# 这些是从虚拟机或本机编译出来的，不该进版本库
+*.exe
+*.out
+*.o
+*.obj
+*.so
+*.dll
+a.out
+
+# ================= 编辑器 / IDE =================
+# 如果你想同步 VS Code 的启动配置，把下面这行删掉
+.vscode/
+.idea/
+*.swp
+
+# ================= Windows =================
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ================= 临时文件 =================
+*.tmp
+*.log
+~$*
