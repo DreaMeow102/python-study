@@ -1,0 +1,11 @@
+# name = "YN4"
+# age = 24 #这个不带引号说明值是数字
+# zhuanYe = "AI" #我看见不带引号的话依旧是蓝色的值，能跑吗？但还是带上吧。
+
+# print("我叫",name,",我今年有",age,"岁,","我的专业是",zhuanYe,"。")
+# 以上为旧代码保存。
+
+name = "YN4"
+age = 24
+zhuanYe = "AI"
+print (f"我叫{name}，我今年有{age}岁，我的专业是{zhuanYe}。")
