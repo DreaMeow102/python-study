@@ -17,15 +17,28 @@ if (-not (Test-Path '.git')) {
     exit 1
 }
 
-# ---------- 1. 检查代理（GitHub 直连不通，必须走代理）----------
-$proxyAlive = $false
+# ---------- 1. 检查能不能连上 GitHub ----------
+# 注意：不要只检查本地代理端口。代理可能运行在 TUN 模式下（不监听本地端口），
+# 那样端口检查会误报。直接测 GitHub 本身才准确。
+$canReach = $false
 try {
-    $proxyAlive = Test-NetConnection 127.0.0.1 -Port 7993 -InformationLevel Quiet -WarningAction SilentlyContinue
+    $canReach = Test-NetConnection github.com -Port 22 -InformationLevel Quiet -WarningAction SilentlyContinue
 } catch {}
 
-if (-not $proxyAlive) {
-    Write-Host "[!] 警告：本地代理 127.0.0.1:7993 没有在监听。" -ForegroundColor Yellow
-    Write-Host "    GitHub 直连不通，推送大概率会失败。请先启动代理工具。" -ForegroundColor Yellow
+if (-not $canReach) {
+    # 直连不通时，再看看代理端口在不在，给出更有针对性的提示
+    $proxyAlive = $false
+    try {
+        $proxyAlive = Test-NetConnection 127.0.0.1 -Port 7993 -InformationLevel Quiet -WarningAction SilentlyContinue
+    } catch {}
+
+    Write-Host "[!] 警告：连不上 github.com:22，推送大概率会失败。" -ForegroundColor Yellow
+    if ($proxyAlive) {
+        Write-Host "    代理端口 7993 在监听，但仍连不上 GitHub —— 检查代理工具本身是否正常工作。" -ForegroundColor Yellow
+    } else {
+        Write-Host "    代理端口 7993 也没在监听。请先启动代理工具。" -ForegroundColor Yellow
+    }
+    Write-Host "    （如果你用的是 TUN 模式，可以忽略端口提示。）" -ForegroundColor DarkGray
     Write-Host ""
 }
 
