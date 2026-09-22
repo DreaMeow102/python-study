@@ -5,6 +5,19 @@
 #     .\sync.ps1 "第二课写完"        用你给的说明
 #  也可以直接双击同目录的 sync.cmd
 # ============================================================
+#
+# ⚠️⚠️ 本文件必须带 UTF-8 BOM。⚠️⚠️
+#    PowerShell 5.1 在【无 BOM】时按 GBK 读这个文件，
+#    中文的 UTF-8 字节会吃掉字符串的结束引号 → 整个脚本语法报错。
+#    （2026-09-22 实际踩过：编辑后 BOM 被去掉，脚本直接不能跑。）
+#
+#    改完这个文件后，务必补回 BOM：
+#      $p = '.\sync.ps1'
+#      $t = [IO.File]::ReadAllText($p, (New-Object Text.UTF8Encoding($false)))
+#      [IO.File]::WriteAllText($p, $t, (New-Object Text.UTF8Encoding($true)))
+#    验证：前三个字节应该是 EF BB BF
+#
+# ============================================================
 
 param([string]$Message = "")
 
@@ -43,6 +56,12 @@ if (-not $canReach) {
 }
 
 # ---------- 2. 提交 ----------
+# ⚠️ 不要用 git add -A（2026-09-22 踩过两次）
+#    -A 会把工作区里"任何"未跟踪文件都扫进来——包括你暂时不想进仓库的私人文件。
+#    改成"显式白名单"：只加下面这两个项目文件夹 + 已跟踪文件的修改/删除。
+#    以后新增项目文件夹，往 $projectDirs 里加一行。
+$projectDirs = @('python学习', '嵌入式开发工程实践')
+
 $changes = git status --porcelain
 if (-not $changes) {
     Write-Host "[=] 没有需要提交的改动。" -ForegroundColor Yellow
@@ -50,9 +69,22 @@ if (-not $changes) {
     if (-not $Message) {
         $Message = "更新 " + (Get-Date -Format 'yyyy-MM-dd HH:mm')
     }
-    git add -A
-    git commit -m $Message | Out-Null
-    Write-Host "[+] 已提交：$Message" -ForegroundColor Green
+
+    foreach ($d in $projectDirs) {
+        if (Test-Path -LiteralPath $d) { git add -- $d }
+    }
+    git add -u          # 已跟踪文件的「修改」和「删除」（不会加新文件）
+
+    # ★ 先把暂存清单打出来，再提交 —— 这样你能当场发现"不想进仓库的东西被扫进来了"
+    $staged = git diff --cached --name-status
+    if (-not $staged) {
+        Write-Host "[=] 暂存后没有实际改动，跳过提交。" -ForegroundColor Yellow
+    } else {
+        Write-Host "[i] 即将提交这些改动（觉得不对就按 Ctrl+C）：" -ForegroundColor DarkGray
+        $staged | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        git commit -m $Message | Out-Null
+        Write-Host "[+] 已提交：$Message" -ForegroundColor Green
+    }
 }
 
 # ---------- 3. 推送 ----------
