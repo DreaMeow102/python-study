@@ -58,9 +58,9 @@ if (-not $canReach) {
 # ---------- 2. 提交 ----------
 # ⚠️ 不要用 git add -A（2026-09-22 踩过两次）
 #    -A 会把工作区里"任何"未跟踪文件都扫进来——包括你暂时不想进仓库的私人文件。
-#    改成"显式白名单"：只加下面这两个项目文件夹 + 已跟踪文件的修改/删除。
+#    改成"显式白名单"：只加下面这个项目文件夹 + 已跟踪文件的修改/删除。
 #    以后新增项目文件夹，往 $projectDirs 里加一行。
-$projectDirs = @('python学习', '嵌入式开发工程实践')
+$projectDirs = @('python学习')
 
 $changes = git status --porcelain
 if (-not $changes) {
