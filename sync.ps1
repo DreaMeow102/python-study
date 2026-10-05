@@ -1,5 +1,5 @@
 ﻿# ============================================================
-#  一键同步：提交 + 推送
+#  一键同步：提交 + 推送到两个远程（GitHub + AtomGit）
 #  用法：
 #     .\sync.ps1                    自动生成提交说明（时间戳）
 #     .\sync.ps1 "第二课写完"        用你给的说明
@@ -87,15 +87,37 @@ if (-not $changes) {
     }
 }
 
-# ---------- 3. 推送 ----------
-Write-Host "[>] 正在推送到 GitHub ..." -ForegroundColor Cyan
-git push origin main
+# ---------- 3. 推送（两个远程：GitHub + AtomGit）----------
+#   origin  = GitHub   git@github-pythonstudy:DreaMeow102/python-study.git
+#   atomgit = AtomGit  git@atomgit-pythonstudy:YN4/python-study.git
+# 两个远程用**不同的钥匙**（Host 别名在 ~/.ssh/config 里分开）。
+# 钥匙对应关系、公钥原文、指纹：见 D:\studydemo\密钥-GitHub.txt / 密钥-AtomGit.txt
+$远程表 = @(
+    @{ 名 = 'GitHub';  远程 = 'origin'  },
+    @{ 名 = 'AtomGit'; 远程 = 'atomgit' }
+)
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "[OK] 推送成功。" -ForegroundColor Green
-} else {
-    Write-Host "[X] 推送失败。常见原因：" -ForegroundColor Red
-    Write-Host "    1. 代理没开（最常见）" -ForegroundColor Red
-    Write-Host "    2. SSH 公钥没加到 GitHub" -ForegroundColor Red
+$失败数 = 0
+foreach ($r in $远程表) {
+    if (-not (git remote | Where-Object { $_ -eq $r.远程 })) {
+        Write-Host ("[!] 跳过 {0}：本仓库没配 `"{1}`" 这个远程" -f $r.名, $r.远程) -ForegroundColor Yellow
+        continue
+    }
+    Write-Host ("[>] 推送到 {0} ..." -f $r.名) -ForegroundColor Cyan
+    git push $r.远程 main
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host ("[OK] {0} 推送成功。" -f $r.名) -ForegroundColor Green
+    } else {
+        Write-Host ("[X] {0} 推送失败。" -f $r.名) -ForegroundColor Red
+        $失败数 = $失败数 + 1
+    }
+}
+
+if ($失败数 -gt 0) {
+    Write-Host ""
+    Write-Host "[X] 有远程推送失败。常见原因：" -ForegroundColor Red
+    Write-Host "    1. 代理没开（GitHub 最常见）" -ForegroundColor Red
+    Write-Host "    2. 那把钥匙没注册，或者没勾「写入权限」" -ForegroundColor Red
+    Write-Host "       → 看 D:\studydemo\密钥-GitHub.txt / 密钥-AtomGit.txt" -ForegroundColor Red
     exit 1
 }

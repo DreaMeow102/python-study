@@ -141,3 +141,32 @@ n = int(input())
 ### 待验收
 
 **第一次真跑（第七课）会暴露链条哪里要补条目。** 按上面的方式补：一条判据、双方商定、来历进本文件。
+
+
+---
+
+## 2026-09-22 · git 的现状（怕忘，记在这）
+
+**仓库根是 `D:\studydemo`**（不是 `python学习`）。
+远程 `git@github.com:DreaMeow102/python-study.git`，分支 `main`。
+
+**推送的只有一个项目文件夹**：`sync.ps1` 里 `$projectDirs = @('python学习')`。
+`嵌入式开发工程实践` 已用 `git rm -r --cached` 从库里移除，**本机文件还在**，只是不再跟踪。
+
+**根目录那三个文件也留在库里**：`.gitignore` / `sync.ps1` / `sync.cmd`
+（不带它们，换台机器就没法推）。`sync.ps1` **必须 UTF-8 with BOM**（它自己头上写着，踩过）。
+
+**私密文件**：`愿景.md` 用 `.gitignore` 挡着（不带路径的写法，移到哪个子文件夹都被忽略）。
+它已从磁盘删除，备份在 `C:\Users\Administrator\AppData\Local\Temp\愿景.md.bak`
+（SHA256 开头 `6DC4049AB90A5E88`）。**远程 main 里没有它**（已核）。
+
+**历史没清**：2026-09-22 那次是**普通 push**（`78191c5 → cbe6522`），远程历史完整保留。
+要"只留一个干净的初始提交"得 force push —— **不可逆，没做**。
+
+**一键推送**：双击 `D:\studydemo\sync.cmd`，或
+
+    cd D:\studydemo
+    .\sync.ps1 "提交说明"
+
+它自己会：检查 GitHub 通不通 → 按白名单 `git add` → **打印暂存清单** → 提交 → 推送。
+（代理 `http://127.0.0.1:7993` 已配在 git config 里。）
